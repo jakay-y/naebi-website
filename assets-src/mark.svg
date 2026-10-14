@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="256 121 473 630" role="img" aria-label="Naebi Dynamic Concepts">
+  <defs>
+    <linearGradient id="ng" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="#1B3F86"/><stop offset="1" stop-color="#0B1222"/></linearGradient>
+    <linearGradient id="gg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8DC63F"/><stop offset=".55" stop-color="#5E9E3A"/><stop offset="1" stop-color="#0F4A2E"/></linearGradient>
+  </defs>
+  <path fill="url(#gg)" d="M261 126H573A150 150 0 0 1 723 276V404H633V275A60 60 0 0 0 573 215H261Z"/>
+  <path fill="url(#ng)" d="M262 249H549A50 50 0 0 1 599 299V404H509V350H356V743H262Z"/>
+  <path fill="url(#ng)" d="M509 434H599V560A70 70 0 0 1 529 630H509Z"/>
+  <path fill="url(#gg)" d="M385 376H474V664H529A104 104 0 0 0 633 560V434H723V560A185 185 0 0 1 538 745H385Z"/>
+</svg>

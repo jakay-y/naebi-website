@@ -1,0 +1,8 @@
+<!doctype html><meta charset="utf-8"><body style="margin:0;background:transparent">
+<canvas id="c" style="width:512px;height:512px;display:block"></canvas>
+<script src="../node_modules/three/build/three.min.js"></script>
+<script src="../src/assets/logo3d.js"></script>
+<script>
+const q = new URLSearchParams(location.search);
+NaebiLogo3D.still(document.getElementById('c'), { yaw: +(q.get('yaw') || -0.42), pitch: +(q.get('pitch') || 0.12) });
+</script></body>
