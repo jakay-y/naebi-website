@@ -144,16 +144,20 @@ ${full ? '</body>\n</html>\n' : ''}`;
   writeFileSync(OUT + file, html);
 }
 
-function pageHero({ word, title, sub, crumb, img, alt }) {
+function pageHero({ word, title, sub, crumb, img, alt, cta }) {
   const src = STOCK[img] ? stock(img) : img, a = STOCK[img] ? STOCK[img].alt : alt;
-  return `<section class="hero page">
-  <div class="hero-media"><img src="assets/${src}" alt="${a}" data-critical></div>
-  <div class="hero-word" aria-hidden="true">${[...word].map(c => `<span>${c}</span>`).join('')}</div>
-  <div class="hero-inner"><div class="container">
-    <nav class="crumbs enter" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">/</span><span aria-current="page">${crumb}</span></nav>
-    <h1 class="enter d2" style="max-width:18ch">${title}</h1>
-    ${sub ? `<p class="sub enter d3">${sub}</p>` : ''}
-  </div></div>
+  // "Main part|softer part" renders the second half in grey, like the reference
+  const [main, soft] = title.split('|');
+  return `<section class="phero">
+  <div class="container">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">/</span><span aria-current="page">${crumb}</span></nav>
+    <div class="phero-word" aria-hidden="true"><span class="mask">${[...word].map(c => `<span>${c}</span>`).join('')}</span></div>
+    <div class="phero-row">
+      <h1>${main}${soft ? ` <span class="soft">${soft}</span>` : ''}</h1>
+      <div class="side">${sub ? `<p>${sub}</p>` : ''}${cta || ''}</div>
+    </div>
+    <div class="phero-media intro"><img src="assets/${src}" alt="${a}" data-critical></div>
+  </div>
 </section>`;
 }
 
@@ -193,9 +197,9 @@ const faqHTML = (items) => items.map(([q, a], i) => `<details class="q"${i === 0
 page({
   file: 'index.html', active: '', title: 'Naebi Dynamic Concepts',
   desc: 'Naebi Dynamic Concepts monitors civil helicopter operations across Nigeria and administers landing and take-off charges on behalf of the Federal Ministry of Aviation.',
-  body: `<section class="hero">
-  <div class="hero-media"><picture><source media="(max-width: 700px)" srcset="assets/hero-tall.webp"><img src="assets/hero-wide.webp" alt="A black helicopter parked on a clifftop helipad above the coast" data-critical fetchpriority="high"></picture></div>
-  <div class="hero-word" aria-hidden="true"><span>N</span><span>A</span><span>E</span><span>B</span><span>I</span></div>
+  body: `<section class="hero home">
+  <div class="hero-media"><picture><source media="(max-width: 700px)" srcset="assets/hero-tall.webp"><img src="assets/hero-wide.webp" alt="A helicopter parked on a helipad under a bright sky" data-critical fetchpriority="high"></picture></div>
+  <div class="hero-word" aria-hidden="true"><span class="mask"><span>N</span><span>A</span><span>E</span><span>B</span><span>I</span></span></div>
   <div class="hero-fg" aria-hidden="true"><picture><source media="(max-width: 700px)" srcset="assets/hero-tall-fg.webp"><img src="assets/hero-wide-fg.webp" alt=""></picture></div>
   <div class="hero-inner"><div class="container hero-row">
     <div>
@@ -226,7 +230,7 @@ page({
   <div class="container">
     <div class="head-row rv"><h2 class="h2" id="svc-h">What we do for Nigerian airspace</h2><div class="side">${btnLine('services.html', 'All services')}</div></div>
     <div class="bento">
-      <a class="tile rv" href="services.html#monitoring">${sImg('rig-sunset')}<span class="tag">Core service</span>
+      <a class="tile rv" href="services.html#monitoring">${sImg('heli-flight')}<span class="tag">Core service</span>
         <div class="tile-body"><div><h3>Helicopter movement monitoring</h3><div class="meta">${I.pin} Airports · heliports · rig platforms</div></div><span class="go">${I.arrow}</span></div></a>
       <a class="tile rv" data-delay="80" href="services.html#charges">${sImg('helipad-top')}
         <div class="tile-body"><div><h3>Landing &amp; take-off charges</h3><div class="meta">Assessed, invoiced and receipted</div></div><span class="go">${I.arrow}</span></div></a>
@@ -247,7 +251,7 @@ ${ceoBlock()}
       <a class="place" href="services.html#monitoring"><div class="ph"><img src="assets/pad-marking.webp" alt="Painted helipad landing circle" loading="lazy"></div><div class="row"><h3>Heliports</h3><span class="go">${I.arrow}</span></div><div class="meta">${I.pin} Licensed helipads nationwide</div></a>
       <a class="place" href="services.html#monitoring"><div class="ph">${sImg('rig-blue')}</div><div class="row"><h3>Offshore platforms</h3><span class="go">${I.arrow}</span></div><div class="meta">${I.pin} Niger Delta and offshore fields</div></a>
       <a class="place" href="services.html#monitoring"><div class="ph">${sImg('heli-aerial')}</div><div class="row"><h3>Coastal &amp; creek routes</h3><span class="go">${I.arrow}</span></div><div class="meta">${I.pin} Low-level flights over land and water</div></a>
-      <a class="place" href="services.html#technology"><div class="ph">${sImg('heli-sky')}</div><div class="row"><h3>Low-level airspace</h3><span class="go">${I.arrow}</span></div><div class="meta">${I.pin} Mobile radar coverage</div></a>
+      <a class="place" href="services.html#technology"><div class="ph">${sImg('moon-heli')}</div><div class="row"><h3>Low-level airspace</h3><span class="go">${I.arrow}</span></div><div class="meta">${I.pin} Mobile radar coverage</div></a>
     </div>
   </div>
 </section>
@@ -271,8 +275,8 @@ ${ceoBlock()}
       <div class="float rv">${sImg('pilot-view', { alt: '' })}</div>
       <div class="dark-card rv">
         <p>Being asked to pay a landing charge? Verify the official before you pay.</p>
-        <form class="pill-form" data-quick-verify><label class="sr-only" for="trust-id">Staff ID</label><input id="trust-id" placeholder="Staff ID, e.g. NDC-PH-0142" autocomplete="off" spellcheck="false"><button type="submit" aria-label="Verify">${I.arrow}</button></form>
-        <span class="note">Free, instant, and checked against our staff register.</span>
+        <form class="pill-form" data-quick-verify><label class="sr-only" for="trust-id">Staff ID</label><input id="trust-id" placeholder="Enter staff ID" autocomplete="off" spellcheck="false"><button type="submit" aria-label="Verify">${I.arrow}</button></form>
+        <span class="note">IDs look like NDC-PH-0142. Free, instant, and checked against our staff register.</span>
       </div>
       <div class="float lo rv">${sImg('ground-crew', { alt: '' })}</div>
       <div class="float edge rv">${sImg('tower-2', { alt: '' })}</div>
@@ -316,7 +320,7 @@ ${ceoBlock()}
     <div class="faq-head rv"><div><span class="label">FAQs</span><h2 class="h2" id="faq-h" style="margin-top:14px">Got questions?<br>We're here to help.</h2></div><p>Quick answers about our mandate, charges, payments and verifying officials, so you can operate with confidence.</p></div>
     <div class="faq">
       <div class="rv">${faqHTML(FAQS)}</div>
-      <div class="faq-photo rv"><img src="assets/field-tall.webp" alt="A blue helicopter landed beside a waterfall" loading="lazy"></div>
+      <div class="faq-photo rv">${sImg('heli-sky')}</div>
     </div>
   </div>
 </section>`
@@ -326,7 +330,7 @@ ${ceoBlock()}
 page({
   file: 'about.html', active: 'about.html', title: 'About · Naebi Dynamic Concepts',
   desc: 'Naebi Dynamic Concepts is a Nigerian aviation services company working with the Federal Ministry of Aviation, NAMA, NCAA and FAAN.',
-  body: `${pageHero({ word: 'ABOUT', crumb: 'About', title: 'A multidimensional aviation servicing company', sub: 'Efficient and credible aerosolutions for indigenous and expatriate organisations across Nigeria.', img: 'lagos' })}
+  body: `${pageHero({ word: 'ABOUT', crumb: 'About', title: 'A multidimensional aviation servicing company,|built around a federal mandate.', sub: 'Efficient and credible aerosolutions for indigenous and expatriate organisations across Nigeria.', cta: btnLine('#mandate', 'Our mandate'), img: 'lagos' })}
 <section class="section">
   <div class="container story">
     <div class="left rv"><span class="label">Who we are</span><p>Naebi Dynamic Concepts Limited, <b>RC 1367947</b>. Registered in <b>2016</b> and based in <b>Port Harcourt, Rivers State</b>.</p></div>
@@ -368,7 +372,7 @@ const svc = (id, n, title, text, list, img) => `<article class="svc" id="${id}">
 page({
   file: 'services.html', active: 'services.html', title: 'Services · Naebi Dynamic Concepts',
   desc: 'Helicopter movement monitoring, landing and take-off charge administration, surveillance technology and aviation consulting in Nigeria.',
-  body: `${pageHero({ word: 'SERVICES', crumb: 'Services', title: 'Oversight built for low-level airspace', sub: 'From the control room to the helipad, four services that keep civil helicopter operations visible and accountable.', img: 'heli-cockpit' })}
+  body: `${pageHero({ word: 'SERVICES', crumb: 'Services', title: 'Oversight built for low-level airspace,|from the control room to the helipad.', sub: 'Four services that keep civil helicopter operations in Nigeria visible and accountable.', cta: btnSolid('contact.html', 'Talk to our team'), img: 'heli-cockpit' })}
 <section class="section tight"><div class="container">
 ${svc('monitoring', '01 / 04', 'Helicopter movement monitoring', 'We record civil helicopter arrivals and departures at airports, heliports and offshore rig platforms, so that every movement has an accurate record.', ['Coverage of airports, heliports and rig platforms', 'Movements logged by registration, date, time and location', 'Shared records for the Ministry, NAMA, NCAA and FAAN'], 'tower')}
 ${svc('charges', '02 / 04', 'Landing &amp; take-off charge administration', 'We assess, invoice and receipt helicopter landing and take-off charges on behalf of the Federal Government, through official channels only.', ['Charges calculated against the approved schedule', 'Invoices issued to the operator of record', 'Payment through official government channels, never cash'], 'meeting-2')}
@@ -382,7 +386,7 @@ ${svc('consulting', '04 / 04', 'Aviation consulting', 'We advise indigenous and 
 page({
   file: 'operators.html', active: 'operators.html', title: 'Operator guide · Naebi Dynamic Concepts',
   desc: 'How helicopter landing and take-off charges work in Nigeria, how to pay through official channels, and how to raise a billing query.',
-  body: `${pageHero({ word: 'OPERATE', crumb: 'Operators', title: 'The operator guide', sub: 'What is charged, how to pay safely, and what to do if something looks wrong.', img: 'airport' })}
+  body: `${pageHero({ word: 'OPERATE', crumb: 'Operators', title: 'The operator guide.|Charges, payments and queries in one place.', sub: 'What is charged, how to pay safely, and what to do if something on your bill looks wrong.', cta: btnLine('#query', 'Raise a billing query'), img: 'fog-tarmac' })}
 <section class="section">
   <div class="container">
     <div class="head-row rv"><h2 class="h2">How it works</h2></div>
@@ -441,7 +445,7 @@ page({
 page({
   file: 'verify.html', active: 'verify.html', title: 'Verify an official · Naebi Dynamic Concepts',
   desc: 'Check a Naebi staff ID or payment account before you pay or hand over documents.',
-  body: `${pageHero({ word: 'VERIFY', crumb: 'Verify an official', title: 'Check before you pay', sub: 'Every Naebi official carries a staff ID. Check it here before you hand over money or documents.', img: 'ground-crew' })}
+  body: `${pageHero({ word: 'VERIFY', crumb: 'Verify an official', title: 'Check before you pay.|Every Naebi official carries a staff ID.', sub: 'Check an ID or payment account here before you hand over money or documents.', cta: btnSolid('#verify-tool', 'Verify now'), img: 'ground-crew' })}
 <section class="section">
   <div class="container split top">
     <div class="vt rv" id="verify-tool">
@@ -466,7 +470,7 @@ page({
 page({
   file: 'newsroom.html', active: 'newsroom.html', title: 'Newsroom · Naebi Dynamic Concepts',
   desc: 'News and press coverage of Naebi Dynamic Concepts and helicopter monitoring in Nigeria.',
-  body: `${pageHero({ word: 'NEWS', crumb: 'Newsroom', title: 'Newsroom', sub: 'Press coverage of our work with the Federal Ministry of Aviation.', img: 'newspapers' })}
+  body: `${pageHero({ word: 'NEWS', crumb: 'Newsroom', title: 'Newsroom.|Our work, on the record.', sub: 'Press coverage of our work with the Federal Ministry of Aviation.', img: 'sunset-flight' })}
 <section class="section">
   <div class="container">
     <div class="news rv">
@@ -486,7 +490,7 @@ page({
 page({
   file: 'contact.html', active: 'contact.html', title: 'Contact · Naebi Dynamic Concepts',
   desc: 'Contact Naebi Dynamic Concepts in Port Harcourt and Lagos.',
-  body: `${pageHero({ word: 'CONTACT', crumb: 'Contact', title: 'Talk to our team', sub: 'Operators, partners and press: we reply on working days.', img: 'interview' })}
+  body: `${pageHero({ word: 'CONTACT', crumb: 'Contact', title: 'Talk to our team.|Port Harcourt and Lagos.', sub: 'Operators, partners and press: we reply on working days.', cta: btnLine('tel:+2342013306327', '0201 330 6327'), img: 'interview' })}
 <section class="section">
   <div class="container split top">
     <div class="rv" style="display:grid;gap:16px">
@@ -516,7 +520,7 @@ page({
 page({
   file: 'legal.html', active: '', title: 'Legal · Naebi Dynamic Concepts',
   desc: 'Privacy policy, terms of use, cookie policy and accessibility statement for naebidynamic.com.',
-  body: `${pageHero({ word: 'LEGAL', crumb: 'Legal', title: 'Policies', sub: 'Privacy, terms, cookies and accessibility.', img: 'tower-2' })}
+  body: `${pageHero({ word: 'LEGAL', crumb: 'Legal', title: 'Policies.|Privacy, terms, cookies and accessibility.', img: 'tower-2' })}
 <section class="section"><div class="container"><div class="prose">
   <h2 id="privacy">Privacy Policy</h2>
   <p>Naebi Dynamic Concepts Limited collects the personal data you give us through this website, such as your name, organisation, email address, phone number and message. We use it only to respond to your enquiry or billing query and to keep a record of that correspondence.</p>
@@ -536,7 +540,7 @@ page({
 page({
   file: '404.html', active: '', noindex: true, title: 'Page not found · Naebi Dynamic Concepts',
   desc: 'The page you were looking for could not be found.',
-  body: `${pageHero({ word: '404', crumb: 'Page not found', title: 'This page has flown off the radar', sub: 'The link may be old or mistyped. These will get you back on course.', img: 'heli-clouds' })}
+  body: `${pageHero({ word: '404', crumb: 'Page not found', title: 'This page has flown off the radar.|Let’s get you back on course.', sub: 'The link may be old or mistyped.', img: 'heli-clouds' })}
 <section class="section"><div class="container"><div class="cards">
   <a class="card" style="text-decoration:none" href="index.html"><span class="k">Start again</span><h3>Home</h3><p>Back to the Naebi homepage.</p></a>
   <a class="card" style="text-decoration:none" href="operators.html"><span class="k">Operators</span><h3>Operator guide</h3><p>Charges, how to pay and billing queries.</p></a>

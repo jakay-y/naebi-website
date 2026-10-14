@@ -40,7 +40,7 @@ if (mode === 'loader') {
     // scroll through to trigger reveals, then back to top
     const H = await p.evaluate(() => document.documentElement.scrollHeight);
     for (let y = 0; y < H; y += 500) { await p.evaluate(y => scrollTo(0, y), y); await p.waitForTimeout(60); }
-    await p.evaluate(() => { document.querySelectorAll('.rv').forEach(e => e.classList.remove('pre')); scrollTo(0, 0); }); await p.waitForTimeout(900);
+    await p.evaluate(() => { document.querySelectorAll('.pre,.pre-split,.pre-img,.pre-rise').forEach(e => e.classList.remove('pre','pre-split','pre-img','pre-rise')); scrollTo(0, 0); }); await p.waitForTimeout(900);
     const ow = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth);
     if (ow > 0) console.log(`  ${name} ${tag}: horizontal overflow ${ow}px`);
     await p.screenshot({ path: `test-output/${name}-${tag}.png`, fullPage: true });

@@ -50,8 +50,9 @@
   var header = $(".site-header"), hero = $(".hero");
   if (header) {
     if (!hero) header.classList.add("solid");
-    else if ("IntersectionObserver" in window) {
-      new IntersectionObserver(function (es) { header.classList.toggle("solid", !es[0].isIntersecting); }, { rootMargin: "-80px 0px 0px 0px" }).observe(hero);
+    else {
+      var setSolid = function () { header.classList.toggle("solid", window.scrollY > hero.offsetHeight - 120); };
+      window.addEventListener("scroll", setSolid, { passive: true }); window.addEventListener("resize", setSolid); setSolid();
     }
   }
   var menuBtn = $(".menu-btn"), menu = $("#mobile-menu");
@@ -254,6 +255,71 @@
         });
     });
   });
+
+  /* ---- v2 transitions ---- */
+  // Scroll-linked progress: the pinned home hero and the inner-page hero photo
+  var homeHero = $(".hero.home"), pmedia = $(".phero-media");
+  if (!reduce && (homeHero || pmedia)) {
+    var ticking = false;
+    var onScroll = function () {
+      if (ticking) return; ticking = true;
+      requestAnimationFrame(function () {
+        ticking = false;
+        if (homeHero) homeHero.style.setProperty("--p", Math.min(1, Math.max(0, window.scrollY / (homeHero.offsetHeight * 0.9))).toFixed(3));
+        if (pmedia) {
+          var r = pmedia.getBoundingClientRect();
+          pmedia.style.setProperty("--p", Math.min(1, Math.max(0, 1 - r.bottom / (window.innerHeight + r.height))).toFixed(3));
+        }
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true }); onScroll();
+  }
+
+  // Headings: each word rises out of a mask when the heading scrolls into view
+  function splitWords(el) {
+    var i = 0;
+    (function walk(node) {
+      Array.prototype.slice.call(node.childNodes).forEach(function (n) {
+        if (n.nodeType === 3) {
+          var frag = document.createDocumentFragment();
+          n.textContent.split(/(\s+)/).forEach(function (part) {
+            if (!part) return;
+            if (/^\s+$/.test(part)) { frag.appendChild(document.createTextNode(" ")); return; }
+            var w = document.createElement("span"); w.className = "w";
+            var inner = document.createElement("span"); inner.textContent = part; inner.style.setProperty("--i", i++);
+            w.appendChild(inner); frag.appendChild(w);
+          });
+          n.parentNode.replaceChild(frag, n);
+        } else if (n.nodeType === 1 && n.tagName !== "BR") walk(n);
+      });
+    })(el);
+  }
+  var splits = $$(".h2, .footer-cta h2, .phero h1, .svc h2");
+  splits.forEach(function (el) { if (!el.closest(".statement")) { splitWords(el); el.classList.add("wsplit"); } });
+
+  // Generic one-shot observer: elements below the first screen start in a "pre" state
+  function onEnter(els, preClass, margin) {
+    if (reduce || !("IntersectionObserver" in window)) return;
+    var obs = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.remove(preClass); obs.unobserve(e.target); } });
+    }, { rootMargin: margin || "0px 0px -12% 0px" });
+    els.forEach(function (el) {
+      if (el.getBoundingClientRect().top > window.innerHeight * 0.92) { el.classList.add(preClass); obs.observe(el); }
+    });
+  }
+  onEnter($$(".wsplit"), "pre-split");
+  var imgs = $$(".tile, .place .ph, .photo, .faq-photo, .verify-row .float, .ceo-portrait");
+  imgs.forEach(function (el) { el.classList.add("reveal-img"); });
+  onEnter(imgs, "pre-img", "0px 0px -8% 0px");
+  var fw = $(".footer-word");
+  if (fw) {
+    var span = $("span", fw);
+    if (span && !span.classList.contains("mask")) {
+      var word = span.textContent; span.textContent = ""; span.className = "mask";
+      word.split("").forEach(function (ch, k) { var c = document.createElement("span"); c.textContent = ch; c.style.setProperty("--i", k); span.appendChild(c); });
+    }
+    onEnter([fw], "pre-rise", "0px 0px -5% 0px");
+  }
 
   var y = $("[data-year]"); if (y) y.textContent = new Date().getFullYear();
 })();

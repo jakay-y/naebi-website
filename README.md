@@ -50,9 +50,11 @@ scripts/             images.mjs, render-logo.html + shot.mjs, check-links.mjs, b
 
 ## Images
 
-- **Helicopter photos** (supplied): used in the home hero and the FAQ. Third-party operator markings ("BLADE", "BLUE HAWAIIAN", a tail registration and two emblems) have been painted out in `assets-src/`. The hero uses a cut-out of the helicopter (`hero-*-fg.webp`) so the giant "NAEBI" wordmark sits behind the aircraft.
-- **Stock photos:** each section uses its own photo from [Pexels](https://www.pexels.com/license/) (free to use). They're listed in `src/stock.mjs`, with titles and photographers credited on `legal.html#credits`. `npm run build` downloads them first (`scripts/fetch-stock.mjs`) into `public/assets/stock/`. If a download fails, the page uses the bundled fallback for that photo, so builds never break. To pin them in the repo, run `npm run images:stock` once and commit `public/assets/stock/`. To swap a photo, change its Pexels `id` in `src/stock.mjs`.
-- **CEO portrait:** the leadership section shows a branded monogram until a photo exists. Save Chike Stanley's portrait as `public/assets/ceo.webp` (about 1000×1200) and rebuild. It's picked up automatically on the homepage and the About page.
+- **Home hero:** "Front View of a Helicopter" (Pexels 23124351, 2400×3600) in `assets-src/hero-heli.jpg`. Its background-removed cut-out (`hero-heli-cutout.png`, made with rembg/BiRefNet) is layered on top so the giant "NAEBI" wordmark sits behind the aircraft. `npm run images` regenerates the hero, its cut-out and the share image.
+- **Stock photos:** every section has its own photo from [Pexels](https://www.pexels.com/license/), listed in `src/stock.mjs` and credited on `legal.html#credits`. The optimised files are committed in `public/assets/stock/`. To change one, edit its id in `src/stock.mjs`, delete its `.webp`, and run `npm run images:stock` (needs internet) or `npm run build`.
+- **CEO portrait:** taken from the original naebidynamic.com upload (`assets-src/ceo-original.png`, 914×777, the largest version on the old site). It was upscaled 2× with EDSR super-resolution (`assets-src/ceo-upscaled.png`) and exported as `public/assets/ceo.webp`. For a sharper portrait, drop the original camera file in as `public/assets/ceo.webp`.
+- **Supplied helicopter photos:** these are no longer used on the pages. They're kept in `assets-src/` with operator markings removed.
+- **Fetching images when your machine is offline:** the `asset-fetch` branch has two GitHub Actions. *Fetch remote assets* downloads the URLs in `.github/fetch-list.txt` and mirrors the old site. *Process images* runs rembg on the files in `.github/process-list.txt`. Both commit their results back to that branch.
 
 ## Before going live
 
