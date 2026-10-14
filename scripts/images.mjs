@@ -32,3 +32,10 @@ console.log('done');
 // Foreground cut-out of the helicopter, same crops as the hero images, so the wordmark can sit behind it
 await sharp('assets-src/helipad-black-cutout.png').extract({ left: 0, top: 110, width: 736, height: 702 }).resize({ width: 1600, kernel: 'lanczos3' }).sharpen(sharpen).modulate({ saturation: 1.04 }).webp({ quality: 80, alphaQuality: 90 }).toFile(out + 'hero-wide-fg.webp');
 await sharp('assets-src/helipad-black-cutout.png').resize({ width: 900, kernel: 'lanczos3' }).sharpen(sharpen).modulate({ saturation: 1.04 }).webp({ quality: 80, alphaQuality: 90 }).toFile(out + 'hero-tall-fg.webp');
+// Social share image (1200x630) and home-screen icon
+const ogBg = await sharp('assets-src/helipad-black.png').extract({ left: 0, top: 150, width: 736, height: 386 }).resize(1200, 630, { kernel: 'lanczos3' }).modulate({ brightness: 0.82 }).toBuffer();
+const ogMark = await sharp('assets-src/mark-3d-render.png').trim({ threshold: 2 }).resize({ height: 150 }).toBuffer();
+await sharp(ogBg).composite([{ input: ogMark, left: 64, top: 64 }]).jpeg({ quality: 82, mozjpeg: true }).toFile(out + 'og.jpg');
+await sharp({ create: { width: 180, height: 180, channels: 4, background: '#070c18' } })
+  .composite([{ input: await sharp('assets-src/mark-3d-render.png').trim({ threshold: 2 }).resize({ height: 130 }).toBuffer(), gravity: 'center' }])
+  .png().toFile(out + 'apple-touch-icon.png');

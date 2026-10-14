@@ -372,3 +372,22 @@ details.q[open] .a { animation: stepIn .4s var(--ease); }
   .rv.pre { opacity: 1; transform: none; filter: none; }
   .marquee-track { animation: none; }
 }
+
+/* CEO / leadership */
+.ceo { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.2fr); gap: 40px clamp(32px, 6vw, 96px); align-items: center; }
+@media (max-width: 860px) { .ceo { grid-template-columns: minmax(0, 1fr); } }
+.ceo-portrait { margin: 0; position: relative; border-radius: var(--r-lg); overflow: hidden; aspect-ratio: 4 / 4.8; background: var(--night); }
+.ceo-portrait > img { width: 100%; height: 100%; object-fit: cover; }
+.ceo-portrait figcaption { position: absolute; left: 16px; right: 16px; bottom: 16px; display: grid; gap: 2px; padding: 14px 18px; border-radius: 16px; color: #fff; background: rgba(7,12,24,.5); border: 1px solid rgba(255,255,255,.16); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+.ceo-portrait figcaption b { font-weight: 500; font-size: 17px; letter-spacing: -.01em; }
+.ceo-portrait figcaption span { font-size: 13px; color: var(--on-dark-2); }
+.monogram { position: absolute; inset: 0; display: grid; place-items: center; background: radial-gradient(120% 90% at 30% 20%, #17346f 0%, var(--night) 65%); overflow: hidden; }
+.monogram span { font-size: clamp(110px, 14vw, 200px); font-weight: 600; letter-spacing: -.06em; color: rgba(255,255,255,.92); line-height: 1; transform: translateY(-8%); }
+.monogram img { position: absolute; right: -8%; bottom: -6%; width: 62%; opacity: .16; filter: saturate(1.2); }
+.ceo-copy { display: grid; gap: 18px; }
+.ceo-copy .h2 { max-width: 14ch; }
+.ceo-name { display: grid; gap: 2px; padding: 14px 0; border-block: 1px solid var(--line); }
+.ceo-name b { font-size: 20px; font-weight: 500; letter-spacing: -.015em; }
+.ceo-name span { font-size: 14px; color: var(--muted); }
+.ceo-copy p { color: var(--ink-2); max-width: 58ch; }
+.ceo-copy .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; }

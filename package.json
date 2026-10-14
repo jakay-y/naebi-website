@@ -5,13 +5,15 @@
   "description": "Website for Naebi Dynamic Concepts Limited",
   "type": "module",
   "scripts": {
+    "prebuild": "node scripts/fetch-stock.mjs",
     "build": "node src/pages.mjs",
     "build:artifact": "ARTIFACT=1 node src/pages.mjs",
-    "test": "npm run build && node scripts/check-links.mjs",
+    "test": "npm run build && node scripts/check-links.mjs && node scripts/test-verify.mjs",
     "preview": "npm run build && npx --yes serve@14.2.4 dist",
     "images": "node scripts/images.mjs",
     "logo": "TRANSPARENT=1 node scripts/shot.mjs \"file://$PWD/scripts/render-logo.html?yaw=-0.42&pitch=0.12\" assets-src/mark-3d-render.png 512 512 800 && npm run images",
-    "test:browser": "npm run build && node scripts/browser-test.mjs links && node scripts/browser-test.mjs shots index,about,services,operators,verify,newsroom,contact,legal"
+    "test:browser": "npm run build && node scripts/browser-test.mjs links && node scripts/browser-test.mjs shots index,about,services,operators,verify,newsroom,contact,legal",
+    "images:stock": "node scripts/fetch-stock.mjs --force"
   },
   "devDependencies": {
     "geist": "1.4.2",
@@ -19,5 +21,7 @@
     "sharp": "0.34.4",
     "three": "0.160.0"
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  }
 }

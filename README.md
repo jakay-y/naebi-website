@@ -50,14 +50,16 @@ scripts/             images.mjs, render-logo.html + shot.mjs, check-links.mjs, b
 
 ## Images
 
-The two helicopter photos came with third-party operator markings ("BLADE", "BLUE HAWAIIAN", a tail registration and two emblems), which have been painted out in `assets-src/`. Replace them with Naebi's own photography before launch, then run `npm run images`. The hero uses a cut-out of the helicopter (`hero-*-fg.webp`) so the giant "NAEBI" wordmark sits behind the aircraft.
+- **Helicopter photos** (supplied): used in the home hero and the FAQ. Third-party operator markings ("BLADE", "BLUE HAWAIIAN", a tail registration and two emblems) have been painted out in `assets-src/`. The hero uses a cut-out of the helicopter (`hero-*-fg.webp`) so the giant "NAEBI" wordmark sits behind the aircraft.
+- **Stock photos:** each section uses its own photo from [Pexels](https://www.pexels.com/license/) (free to use). They're listed in `src/stock.mjs`, with titles and photographers credited on `legal.html#credits`. `npm run build` downloads them first (`scripts/fetch-stock.mjs`) into `public/assets/stock/`. If a download fails, the page uses the bundled fallback for that photo, so builds never break. To pin them in the repo, run `npm run images:stock` once and commit `public/assets/stock/`. To swap a photo, change its Pexels `id` in `src/stock.mjs`.
+- **CEO portrait:** the leadership section shows a branded monogram until a photo exists. Save Chike Stanley's portrait as `public/assets/ceo.webp` (about 1000×1200) and rebuild. It's picked up automatically on the homepage and the About page.
 
 ## Before going live
 
-- **Verify tool:** `site.js` uses a small sample register (IDs like `NDC-PH-0142`, labelled "Sample register" on the page). Connect it to the real staff and account register through an API.
-- **Forms:** the contact and billing-query forms validate in the browser but don't send yet. They tell people to call 0201 330 6327. Connect them to Netlify Forms or an email or CRM endpoint.
+- **Verify register:** `/api/verify` (`netlify/functions/verify.mjs`) checks `data/register.json`. Replace the sample records with Naebi's real staff IDs and collection accounts, and keep the file current. Lookups are exact-match only, rate-limited and return only the public fields. Where the API isn't deployed (a local preview, for example), the page falls back to the sample records and labels them "Sample records". `node scripts/test-verify.mjs` tests the function.
+- **Forms:** the contact and billing-query forms submit to Netlify Forms. In Netlify, go to **Forms** and add an email notification so submissions reach the operators desk. If sending fails, the page shows the phone number.
 - **Legal:** the text in `legal.html` is general wording that needs legal review.
-- **Facts:** confirm the leadership details, offices and phone number with the client.
+- **Facts:** confirm the leadership details, offices and phone number with the client. Set `SITE_URL` in Netlify if the domain isn't `https://naebidynamic.com`. It drives canonical links, the sitemap and social-share tags.
 
 ## Deploy (Netlify)
 

@@ -1,13 +1,19 @@
 // Generates every page of the site into dist/ and copies the static assets alongside.
 // ARTIFACT=1 writes index.html without its <html>/<head> wrapper (for hosts that add their own).
-import { writeFileSync, rmSync, mkdirSync, cpSync } from 'node:fs';
+import { writeFileSync, rmSync, mkdirSync, cpSync, existsSync } from 'node:fs';
+import { STOCK, stock, pexelsPage } from './stock.mjs';
 const OUT = 'dist/';
 const ARTIFACT = process.env.ARTIFACT === '1';
+const SITE_URL = (process.env.SITE_URL || 'https://naebidynamic.com').replace(/\/$/, '');
+const urlFor = (file) => SITE_URL + (file === 'index.html' ? '/' : '/' + file);
 rmSync(OUT, { recursive: true, force: true });
 mkdirSync(OUT + 'assets', { recursive: true });
 cpSync('public', OUT, { recursive: true });
 cpSync('src/assets', OUT + 'assets', { recursive: true });
 const PHONE = '0201 330 6327';
+// <img> for a stock photo (downloaded Pexels file, or the bundled fallback)
+const sImg = (name, { alt, lazy = true } = {}) => `<img src="assets/${stock(name)}" alt="${alt ?? STOCK[name].alt}"${lazy ? ' loading="lazy"' : ''}>`;
+const CEO_PHOTO = existsSync('public/assets/ceo.webp');
 
 const I = {
   arrow: '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 11L11 5M6 5h5v5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -21,9 +27,22 @@ const btnSolid = (href, text, cls = '') => `<a class="btn btn-solid ${cls}" href
 
 const NAV = [['about.html', 'About'], ['services.html', 'Services'], ['operators.html', 'Operators'], ['newsroom.html', 'Newsroom'], ['contact.html', 'Contact']];
 
-function head({ title, desc, full }) {
+function head({ title, desc, full, file, noindex }) {
   const meta = `<title>${title}</title>
 <meta name="description" content="${desc}">
+${noindex ? '<base href="/">\n<meta name="robots" content="noindex">' : `<link rel="canonical" href="${urlFor(file)}">`}
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Naebi Dynamic Concepts">
+<meta property="og:locale" content="en_NG">
+<meta property="og:title" content="${title}">
+<meta property="og:description" content="${desc}">
+<meta property="og:url" content="${urlFor(file)}">
+<meta property="og:image" content="${SITE_URL}/assets/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="A helicopter on a helipad, with the Naebi Dynamic Concepts logo">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="theme-color" content="#070c18">
 <link rel="icon" type="image/png" href="assets/favicon.png">
@@ -70,7 +89,7 @@ function header(active) {
 
 function footer() {
   return `<footer class="site-footer">
-  <div class="bgimg"><img src="assets/cta-bg.webp" alt="" loading="lazy"></div>
+  <div class="bgimg">${sImg('helis-sunset', { alt: '' })}</div>
   <div class="container">
     <div class="footer-cta rv">
       <span class="label label-dark">Operating helicopters in Nigeria?</span>
@@ -86,14 +105,34 @@ function footer() {
         <h4 style="margin-top:22px">Follow</h4><ul><li><a href="https://www.linkedin.com/in/naebidynamic/" target="_blank" rel="noopener">LinkedIn</a></li><li><a href="https://x.com/naebidynamic" target="_blank" rel="noopener">X (Twitter)</a></li><li><a href="https://www.instagram.com/naebidynamic/" target="_blank" rel="noopener">Instagram</a></li></ul></div>
     </div>
     <div class="footer-word" aria-hidden="true"><img src="assets/mark-3d-lg.png" alt="" loading="lazy"><span>NAEBI</span></div>
-    <div class="footer-bottom"><span>© <span data-year>2026</span> Naebi Dynamic Concepts Limited · RC 1367947</span><nav aria-label="Legal"><a href="legal.html#privacy">Privacy Policy</a><a href="legal.html#terms">Terms of Use</a><a href="legal.html#cookies">Cookie Policy</a><a href="legal.html#accessibility">Accessibility</a></nav></div>
+    <div class="footer-bottom"><span>© <span data-year>2026</span> Naebi Dynamic Concepts Limited · RC 1367947</span><nav aria-label="Legal"><a href="legal.html#privacy">Privacy Policy</a><a href="legal.html#terms">Terms of Use</a><a href="legal.html#cookies">Cookie Policy</a><a href="legal.html#accessibility">Accessibility</a><a href="legal.html#credits">Credits</a></nav></div>
   </div>
 </footer>`;
 }
 
-function page({ file, title, desc, active, body }) {
+const ORG_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Naebi Dynamic Concepts Limited',
+  alternateName: 'Naebi Dynamic Concepts',
+  url: SITE_URL + '/',
+  logo: SITE_URL + '/assets/mark-3d-lg.png',
+  telephone: '+234 201 330 6327',
+  description: 'Aviation services company monitoring civil helicopter operations in Nigeria and administering helicopter landing and take-off charges for the Federal Ministry of Aviation.',
+  foundingDate: '2016',
+  address: { '@type': 'PostalAddress', streetAddress: 'GAT Building, International Wing, Port Harcourt International Airport', addressLocality: 'Port Harcourt', addressRegion: 'Rivers State', addressCountry: 'NG' },
+  location: [
+    { '@type': 'Place', name: 'Head office', address: { '@type': 'PostalAddress', streetAddress: 'GAT Building, International Wing, Port Harcourt International Airport', addressLocality: 'Port Harcourt', addressRegion: 'Rivers State', addressCountry: 'NG' } },
+    { '@type': 'Place', name: 'Lagos office', address: { '@type': 'PostalAddress', streetAddress: 'Terminal 1, Murtala Muhammed International Airport', addressLocality: 'Ikeja', addressRegion: 'Lagos', addressCountry: 'NG' } },
+  ],
+  sameAs: ['https://www.linkedin.com/in/naebidynamic/', 'https://x.com/naebidynamic', 'https://www.instagram.com/naebidynamic/'],
+};
+const PAGES = [];
+function page({ file, title, desc, active, body, noindex }) {
   const full = !ARTIFACT || file !== 'index.html';
-  const html = `${head({ title, desc, full })}
+  if (!noindex) PAGES.push(file);
+  const ld = file === 'index.html' ? `\n<script type="application/ld+json">${JSON.stringify(ORG_LD)}</script>` : '';
+  const html = `${head({ title, desc, full, file, noindex })}${ld}
 ${loader}
 ${header(active)}
 <main id="main">
@@ -106,14 +145,37 @@ ${full ? '</body>\n</html>\n' : ''}`;
 }
 
 function pageHero({ word, title, sub, crumb, img, alt }) {
+  const src = STOCK[img] ? stock(img) : img, a = STOCK[img] ? STOCK[img].alt : alt;
   return `<section class="hero page">
-  <div class="hero-media"><img src="assets/${img}" alt="${alt}" data-critical></div>
+  <div class="hero-media"><img src="assets/${src}" alt="${a}" data-critical></div>
   <div class="hero-word" aria-hidden="true">${[...word].map(c => `<span>${c}</span>`).join('')}</div>
   <div class="hero-inner"><div class="container">
     <nav class="crumbs enter" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">/</span><span aria-current="page">${crumb}</span></nav>
     <h1 class="enter d2" style="max-width:18ch">${title}</h1>
     ${sub ? `<p class="sub enter d3">${sub}</p>` : ''}
   </div></div>
+</section>`;
+}
+
+const CEO_BIO = [
+  'Chike Stanley leads Naebi Dynamic Concepts and its work with the Federal Ministry of Aviation, NAMA, NCAA and FAAN to bring every civil helicopter movement in Nigeria onto one accurate record.',
+  'In October 2022 he inaugurated the Rivers State implementation committee for helicopter landing and take-off charges at Port Harcourt International Airport, and he has led the company’s investment in surveillance technology, including mobile radar and a central control room.',
+];
+function ceoBlock({ link = true, id = '' } = {}) {
+  const portrait = CEO_PHOTO
+    ? '<img src="assets/ceo.webp" alt="Chike Stanley, Chief Executive Officer of Naebi Dynamic Concepts" loading="lazy">'
+    : '<div class="monogram" role="img" aria-label="Chike Stanley"><span>CS</span><img src="assets/mark-3d-lg.png" alt="" loading="lazy"></div>';
+  return `<section class="section"${id ? ` id="${id}"` : ''} aria-labelledby="ceo-h">
+  <div class="container ceo">
+    <figure class="ceo-portrait rv">${portrait}<figcaption><b>Chike Stanley</b><span>Chief Executive Officer</span></figcaption></figure>
+    <div class="ceo-copy rv">
+      <span class="label">Leadership</span>
+      <h2 class="h2" id="ceo-h">Meet our Chief Executive</h2>
+      <div class="ceo-name"><b>Chike Stanley</b><span>Chief Executive Officer, Naebi Dynamic Concepts</span></div>
+      ${CEO_BIO.map(p => `<p>${p}</p>`).join('')}
+      ${link ? `<div class="actions">${btnLine('about.html#leadership', 'Meet the leadership')}${btnSolid('contact.html', 'Contact the CEO’s office')}</div>` : ''}
+    </div>
+  </div>
 </section>`;
 }
 
@@ -164,31 +226,33 @@ page({
   <div class="container">
     <div class="head-row rv"><h2 class="h2" id="svc-h">What we do for Nigerian airspace</h2><div class="side">${btnLine('services.html', 'All services')}</div></div>
     <div class="bento">
-      <a class="tile rv" href="services.html#monitoring"><img src="assets/field-wide.webp" alt="A blue helicopter landed on grass beside a waterfall" loading="lazy"><span class="tag">Core service</span>
+      <a class="tile rv" href="services.html#monitoring">${sImg('rig-sunset')}<span class="tag">Core service</span>
         <div class="tile-body"><div><h3>Helicopter movement monitoring</h3><div class="meta">${I.pin} Airports · heliports · rig platforms</div></div><span class="go">${I.arrow}</span></div></a>
-      <a class="tile rv" data-delay="80" href="services.html#charges"><img src="assets/helipad.webp" alt="A helicopter on a marked helipad" loading="lazy">
+      <a class="tile rv" data-delay="80" href="services.html#charges">${sImg('helipad-top')}
         <div class="tile-body"><div><h3>Landing &amp; take-off charges</h3><div class="meta">Assessed, invoiced and receipted</div></div><span class="go">${I.arrow}</span></div></a>
-      <a class="tile rv" data-delay="160" href="services.html#technology"><img src="assets/cockpit.webp" alt="Close-up of a helicopter cockpit canopy" loading="lazy">
+      <a class="tile rv" data-delay="160" href="services.html#technology">${sImg('monitors')}
         <div class="tile-body"><div><h3>Surveillance technology</h3><div class="meta">Radar, tracking and a central control room</div></div><span class="go">${I.arrow}</span></div></a>
     </div>
   </div>
 </section>
 
-<section class="section" aria-labelledby="where-h" data-carousel>
+${ceoBlock()}
+
+<section class="section sunken" aria-labelledby="where-h" data-carousel>
   <div class="container">
     <div class="head-row rv"><h2 class="h2" id="where-h">Wherever helicopters land</h2>
       <div class="side"><button class="icon-btn" type="button" data-prev aria-label="Previous">${I.left}</button><button class="icon-btn accent" type="button" data-next aria-label="Next">${I.right}</button></div></div>
     <div class="carousel rv" tabindex="0" aria-label="Places we monitor">
-      <a class="place" href="services.html#monitoring"><div class="ph"><img src="assets/tail-rotor.webp" alt="Helicopter tail rotor on the apron" loading="lazy"></div><div class="row"><h3>Airports</h3><span class="go">${I.arrow}</span></div><div class="meta">${I.pin} Port Harcourt and Lagos offices</div></a>
+      <a class="place" href="services.html#monitoring"><div class="ph">${sImg('tower')}</div><div class="row"><h3>Airports</h3><span class="go">${I.arrow}</span></div><div class="meta">${I.pin} Port Harcourt and Lagos offices</div></a>
       <a class="place" href="services.html#monitoring"><div class="ph"><img src="assets/pad-marking.webp" alt="Painted helipad landing circle" loading="lazy"></div><div class="row"><h3>Heliports</h3><span class="go">${I.arrow}</span></div><div class="meta">${I.pin} Licensed helipads nationwide</div></a>
-      <a class="place" href="services.html#monitoring"><div class="ph"><img src="assets/rotor-head.webp" alt="Helicopter rotor head and engine cowling" loading="lazy"></div><div class="row"><h3>Offshore platforms</h3><span class="go">${I.arrow}</span></div><div class="meta">${I.pin} Niger Delta and offshore fields</div></a>
-      <a class="place" href="services.html#monitoring"><div class="ph"><img src="assets/skids.webp" alt="Helicopter landing skids on grass" loading="lazy"></div><div class="row"><h3>Field landing sites</h3><span class="go">${I.arrow}</span></div><div class="meta">${I.pin} Onshore operations</div></a>
-      <a class="place" href="services.html#technology"><div class="ph"><img src="assets/waterfall.webp" alt="Remote landing area beside a waterfall" loading="lazy"></div><div class="row"><h3>Low-level airspace</h3><span class="go">${I.arrow}</span></div><div class="meta">${I.pin} Mobile radar coverage</div></a>
+      <a class="place" href="services.html#monitoring"><div class="ph">${sImg('rig-blue')}</div><div class="row"><h3>Offshore platforms</h3><span class="go">${I.arrow}</span></div><div class="meta">${I.pin} Niger Delta and offshore fields</div></a>
+      <a class="place" href="services.html#monitoring"><div class="ph">${sImg('heli-aerial')}</div><div class="row"><h3>Coastal &amp; creek routes</h3><span class="go">${I.arrow}</span></div><div class="meta">${I.pin} Low-level flights over land and water</div></a>
+      <a class="place" href="services.html#technology"><div class="ph">${sImg('heli-sky')}</div><div class="row"><h3>Low-level airspace</h3><span class="go">${I.arrow}</span></div><div class="meta">${I.pin} Mobile radar coverage</div></a>
     </div>
   </div>
 </section>
 
-<section class="section sunken trust" aria-labelledby="trust-h">
+<section class="section trust" aria-labelledby="trust-h">
   <div class="container">
     <span class="label rv">Federal mandate</span>
     <h2 class="h2 rv" id="trust-h">Authorised oversight. Straightforward compliance.</h2>
@@ -203,15 +267,15 @@ page({
       </div>
     </div>
     <div class="verify-row">
-      <div class="float edge rv"><img src="assets/waterfall.webp" alt="" loading="lazy"></div>
-      <div class="float rv"><img src="assets/helipad.webp" alt="" loading="lazy"></div>
+      <div class="float edge rv">${sImg('rig-night', { alt: '' })}</div>
+      <div class="float rv">${sImg('pilot-view', { alt: '' })}</div>
       <div class="dark-card rv">
         <p>Being asked to pay a landing charge? Verify the official before you pay.</p>
         <form class="pill-form" data-quick-verify><label class="sr-only" for="trust-id">Staff ID</label><input id="trust-id" placeholder="Staff ID, e.g. NDC-PH-0142" autocomplete="off" spellcheck="false"><button type="submit" aria-label="Verify">${I.arrow}</button></form>
         <span class="note">Free, instant, and checked against our staff register.</span>
       </div>
-      <div class="float lo rv"><img src="assets/cockpit.webp" alt="" loading="lazy"></div>
-      <div class="float edge rv"><img src="assets/tail-rotor.webp" alt="" loading="lazy"></div>
+      <div class="float lo rv">${sImg('ground-crew', { alt: '' })}</div>
+      <div class="float edge rv">${sImg('tower-2', { alt: '' })}</div>
     </div>
   </div>
 </section>
@@ -262,7 +326,7 @@ page({
 page({
   file: 'about.html', active: 'about.html', title: 'About · Naebi Dynamic Concepts',
   desc: 'Naebi Dynamic Concepts is a Nigerian aviation services company working with the Federal Ministry of Aviation, NAMA, NCAA and FAAN.',
-  body: `${pageHero({ word: 'ABOUT', crumb: 'About', title: 'A multidimensional aviation servicing company', sub: 'Efficient and credible aerosolutions for indigenous and expatriate organisations across Nigeria.', img: 'hero-wide.webp', alt: 'A black helicopter on a clifftop helipad' })}
+  body: `${pageHero({ word: 'ABOUT', crumb: 'About', title: 'A multidimensional aviation servicing company', sub: 'Efficient and credible aerosolutions for indigenous and expatriate organisations across Nigeria.', img: 'lagos' })}
 <section class="section">
   <div class="container story">
     <div class="left rv"><span class="label">Who we are</span><p>Naebi Dynamic Concepts Limited, <b>RC 1367947</b>. Registered in <b>2016</b> and based in <b>Port Harcourt, Rivers State</b>.</p></div>
@@ -289,13 +353,7 @@ page({
     </div>
   </div>
 </section>
-<section class="section sunken">
-  <div class="container split">
-    <div class="photo tall rv"><img src="assets/field-tall.webp" alt="A blue helicopter landed beside a waterfall" loading="lazy"></div>
-    <div class="rv"><span class="label">Leadership</span><h2 class="h2" style="margin-top:14px">Led by people who know the apron</h2>
-      <div class="cards" style="margin-top:28px"><div class="card"><span class="k">Chief Executive Officer</span><h3>Chike Stanley</h3><p>Leads Naebi's partnership with the Federal Ministry of Aviation and the roll-out of helicopter monitoring nationwide.</p></div></div></div>
-  </div>
-</section>
+${ceoBlock({ link: false, id: 'leadership' })}
 <section class="section" id="careers">
   <div class="container split top">
     <div class="rv"><span class="label">Careers</span><h2 class="h2" style="margin-top:14px">Work with us</h2></div>
@@ -306,16 +364,16 @@ page({
 });
 
 /* ===================== SERVICES ===================== */
-const svc = (id, n, title, text, list, img, alt) => `<article class="svc" id="${id}"><div class="photo rv"><img src="assets/${img}" alt="${alt}" loading="lazy"></div><div class="rv"><span class="n">${n}</span><h2>${title}</h2><p>${text}</p><ul>${list.map(l => `<li>${l}</li>`).join('')}</ul></div></article>`;
+const svc = (id, n, title, text, list, img) => `<article class="svc" id="${id}"><div class="photo rv">${sImg(img)}</div><div class="rv"><span class="n">${n}</span><h2>${title}</h2><p>${text}</p><ul>${list.map(l => `<li>${l}</li>`).join('')}</ul></div></article>`;
 page({
   file: 'services.html', active: 'services.html', title: 'Services · Naebi Dynamic Concepts',
   desc: 'Helicopter movement monitoring, landing and take-off charge administration, surveillance technology and aviation consulting in Nigeria.',
-  body: `${pageHero({ word: 'SERVICES', crumb: 'Services', title: 'Oversight built for low-level airspace', sub: 'From the control room to the helipad, four services that keep civil helicopter operations visible and accountable.', img: 'field-wide.webp', alt: 'A blue helicopter beside a waterfall' })}
+  body: `${pageHero({ word: 'SERVICES', crumb: 'Services', title: 'Oversight built for low-level airspace', sub: 'From the control room to the helipad, four services that keep civil helicopter operations visible and accountable.', img: 'heli-cockpit' })}
 <section class="section tight"><div class="container">
-${svc('monitoring', '01 / 04', 'Helicopter movement monitoring', 'We record civil helicopter arrivals and departures at airports, heliports and offshore rig platforms, so that every movement has an accurate record.', ['Coverage of airports, heliports and rig platforms', 'Movements logged by registration, date, time and location', 'Shared records for the Ministry, NAMA, NCAA and FAAN'], 'helipad.webp', 'A helicopter on a marked helipad')}
-${svc('charges', '02 / 04', 'Landing &amp; take-off charge administration', 'We assess, invoice and receipt helicopter landing and take-off charges on behalf of the Federal Government, through official channels only.', ['Charges calculated against the approved schedule', 'Invoices issued to the operator of record', 'Payment through official government channels, never cash'], 'pad-marking.webp', 'Helipad landing circle marking')}
-${svc('technology', '03 / 04', 'Surveillance technology', 'Mobile radar with high-density cameras, IT tracking devices, body-worn cameras and a central control room give us visibility of low-level helicopter flight.', ['Mobile radar for low-level flights', 'Tracking devices and body-worn cameras for field teams', 'A central control room facility'], 'cockpit.webp', 'Close-up of a helicopter cockpit')}
-${svc('consulting', '04 / 04', 'Aviation consulting', 'We advise indigenous and expatriate organisations on operating helicopters in Nigerian airspace, from compliance to the practicalities of charges and records.', ['Compliance guidance for operators', 'Support for oil and gas charter clients', 'Records and reporting support'], 'rotor-head.webp', 'Helicopter rotor head')}
+${svc('monitoring', '01 / 04', 'Helicopter movement monitoring', 'We record civil helicopter arrivals and departures at airports, heliports and offshore rig platforms, so that every movement has an accurate record.', ['Coverage of airports, heliports and rig platforms', 'Movements logged by registration, date, time and location', 'Shared records for the Ministry, NAMA, NCAA and FAAN'], 'tower')}
+${svc('charges', '02 / 04', 'Landing &amp; take-off charge administration', 'We assess, invoice and receipt helicopter landing and take-off charges on behalf of the Federal Government, through official channels only.', ['Charges calculated against the approved schedule', 'Invoices issued to the operator of record', 'Payment through official government channels, never cash'], 'meeting-2')}
+${svc('technology', '03 / 04', 'Surveillance technology', 'Mobile radar with high-density cameras, IT tracking devices, body-worn cameras and a central control room give us visibility of low-level helicopter flight.', ['Mobile radar for low-level flights', 'Tracking devices and body-worn cameras for field teams', 'A central control room facility'], 'monitors')}
+${svc('consulting', '04 / 04', 'Aviation consulting', 'We advise indigenous and expatriate organisations on operating helicopters in Nigerian airspace, from compliance to the practicalities of charges and records.', ['Compliance guidance for operators', 'Support for oil and gas charter clients', 'Records and reporting support'], 'meeting')}
 </div></section>
 <section class="section sunken trust"><div class="container"><h2 class="h2 rv">Need something specific?</h2><p class="lead rv">Tell us about your fleet and where you fly. We will tell you exactly what applies.</p><div class="actions rv">${btnSolid('contact.html', 'Talk to our team')}${btnLine('operators.html', 'Operator guide')}</div></div></section>`
 });
@@ -324,7 +382,7 @@ ${svc('consulting', '04 / 04', 'Aviation consulting', 'We advise indigenous and 
 page({
   file: 'operators.html', active: 'operators.html', title: 'Operator guide · Naebi Dynamic Concepts',
   desc: 'How helicopter landing and take-off charges work in Nigeria, how to pay through official channels, and how to raise a billing query.',
-  body: `${pageHero({ word: 'OPERATE', crumb: 'Operators', title: 'The operator guide', sub: 'What is charged, how to pay safely, and what to do if something looks wrong.', img: 'helipad.webp', alt: 'A helicopter on a marked helipad' })}
+  body: `${pageHero({ word: 'OPERATE', crumb: 'Operators', title: 'The operator guide', sub: 'What is charged, how to pay safely, and what to do if something looks wrong.', img: 'airport' })}
 <section class="section">
   <div class="container">
     <div class="head-row rv"><h2 class="h2">How it works</h2></div>
@@ -345,7 +403,7 @@ page({
 </section>
 <section class="section" id="pay">
   <div class="container split">
-    <div class="photo rv"><img src="assets/skids.webp" alt="Helicopter skids on grass" loading="lazy"></div>
+    <div class="photo rv">${sImg('pilot-view')}</div>
     <div class="rv"><span class="label">How to pay</span><h2 class="h2" style="margin-top:14px">Pay safely, every time</h2>
       <div class="svc" style="padding:0;border:0;display:block"><ul>
         <li>Pay only through the official channels printed on your Naebi invoice.</li>
@@ -360,7 +418,8 @@ page({
   <div class="container split top">
     <div class="rv"><span class="label">Billing query</span><h2 class="h2" style="margin-top:14px">Something on your bill looks wrong?</h2><p class="lead" style="margin-top:16px">Send us the details and our operators desk will review the movement record with you.</p></div>
     <div class="panel rv">
-      <form class="form" data-form novalidate>
+      <form class="form" data-form novalidate name="billing-query" method="POST" action="/" data-netlify="true" netlify-honeypot="website">
+        <input type="hidden" name="form-name" value="billing-query"><p hidden><label>Leave this empty <input name="website" tabindex="-1" autocomplete="off"></label></p>
         <div class="two"><div class="field"><label for="q-name">Your name</label><input id="q-name" name="name" required autocomplete="name"><span class="err">Enter your name.</span></div>
         <div class="field"><label for="q-org">Operator</label><input id="q-org" name="org" required autocomplete="organization"><span class="err">Enter the operator's name.</span></div></div>
         <div class="two"><div class="field"><label for="q-email">Email</label><input id="q-email" name="email" type="email" required autocomplete="email"><span class="err">Enter a valid email address.</span></div>
@@ -382,11 +441,11 @@ page({
 page({
   file: 'verify.html', active: 'verify.html', title: 'Verify an official · Naebi Dynamic Concepts',
   desc: 'Check a Naebi staff ID or payment account before you pay or hand over documents.',
-  body: `${pageHero({ word: 'VERIFY', crumb: 'Verify an official', title: 'Check before you pay', sub: 'Every Naebi official carries a staff ID. Check it here before you hand over money or documents.', img: 'tail-rotor.webp', alt: 'Helicopter tail rotor' })}
+  body: `${pageHero({ word: 'VERIFY', crumb: 'Verify an official', title: 'Check before you pay', sub: 'Every Naebi official carries a staff ID. Check it here before you hand over money or documents.', img: 'ground-crew' })}
 <section class="section">
   <div class="container split top">
     <div class="vt rv" id="verify-tool">
-      <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><h2>Verify an official</h2><span class="badge-demo">SAMPLE REGISTER</span></div>
+      <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><h2>Verify an official</h2><span class="badge-demo" id="v-badge" hidden>SAMPLE RECORDS</span></div>
       <div class="seg" role="group" aria-label="What to check"><button type="button" data-mode="staff" aria-pressed="true">Staff ID</button><button type="button" data-mode="acct" aria-pressed="false">Payment account</button></div>
       <form class="pill-form" novalidate><label class="sr-only" for="v-input" id="v-label">Staff ID</label><input id="v-input" autocomplete="off" spellcheck="false"><button class="btn btn-solid" type="submit">Verify</button></form>
       <div class="samples" id="v-samples"></div>
@@ -407,7 +466,7 @@ page({
 page({
   file: 'newsroom.html', active: 'newsroom.html', title: 'Newsroom · Naebi Dynamic Concepts',
   desc: 'News and press coverage of Naebi Dynamic Concepts and helicopter monitoring in Nigeria.',
-  body: `${pageHero({ word: 'NEWS', crumb: 'Newsroom', title: 'Newsroom', sub: 'Press coverage of our work with the Federal Ministry of Aviation.', img: 'rotor-head.webp', alt: 'Helicopter rotor head' })}
+  body: `${pageHero({ word: 'NEWS', crumb: 'Newsroom', title: 'Newsroom', sub: 'Press coverage of our work with the Federal Ministry of Aviation.', img: 'newspapers' })}
 <section class="section">
   <div class="container">
     <div class="news rv">
@@ -427,7 +486,7 @@ page({
 page({
   file: 'contact.html', active: 'contact.html', title: 'Contact · Naebi Dynamic Concepts',
   desc: 'Contact Naebi Dynamic Concepts in Port Harcourt and Lagos.',
-  body: `${pageHero({ word: 'CONTACT', crumb: 'Contact', title: 'Talk to our team', sub: 'Operators, partners and press: we reply on working days.', img: 'cta-bg.webp', alt: 'A helicopter on a helipad above the coast' })}
+  body: `${pageHero({ word: 'CONTACT', crumb: 'Contact', title: 'Talk to our team', sub: 'Operators, partners and press: we reply on working days.', img: 'interview' })}
 <section class="section">
   <div class="container split top">
     <div class="rv" style="display:grid;gap:16px">
@@ -436,7 +495,8 @@ page({
       <div class="card"><span class="k">Phone</span><h3 class="tabular">${PHONE}</h3><p>Monday to Friday, 09:00 to 17:00</p></div>
     </div>
     <div class="panel rv">
-      <form class="form" data-form novalidate>
+      <form class="form" data-form novalidate name="contact" method="POST" action="/" data-netlify="true" netlify-honeypot="website">
+        <input type="hidden" name="form-name" value="contact"><p hidden><label>Leave this empty <input name="website" tabindex="-1" autocomplete="off"></label></p>
         <div class="two"><div class="field"><label for="c-name">Your name</label><input id="c-name" name="name" required autocomplete="name"><span class="err">Enter your name.</span></div>
         <div class="field"><label for="c-org">Organisation (optional)</label><input id="c-org" name="org" autocomplete="organization"></div></div>
         <div class="two"><div class="field"><label for="c-email">Email</label><input id="c-email" name="email" type="email" required autocomplete="email"><span class="err">Enter a valid email address.</span></div>
@@ -456,7 +516,7 @@ page({
 page({
   file: 'legal.html', active: '', title: 'Legal · Naebi Dynamic Concepts',
   desc: 'Privacy policy, terms of use, cookie policy and accessibility statement for naebidynamic.com.',
-  body: `${pageHero({ word: 'LEGAL', crumb: 'Legal', title: 'Policies', sub: 'Privacy, terms, cookies and accessibility.', img: 'pad-marking.webp', alt: 'Helipad marking' })}
+  body: `${pageHero({ word: 'LEGAL', crumb: 'Legal', title: 'Policies', sub: 'Privacy, terms, cookies and accessibility.', img: 'tower-2' })}
 <section class="section"><div class="container"><div class="prose">
   <h2 id="privacy">Privacy Policy</h2>
   <p>Naebi Dynamic Concepts Limited collects the personal data you give us through this website, such as your name, organisation, email address, phone number and message. We use it only to respond to your enquiry or billing query and to keep a record of that correspondence.</p>
@@ -465,8 +525,31 @@ page({
   <p>The information on this website is provided for general guidance. Charges that apply to a specific operator are set out on that operator's invoice. Links to other websites are provided for convenience; we are not responsible for their content.</p>
   <h2 id="cookies">Cookie Policy</h2>
   <p>This website does not use advertising or tracking cookies. It stores one setting in your browser for the current visit so that the loading screen plays only once. That setting is deleted when you close the browser tab.</p>
+  <h2 id="credits">Photography credits</h2>
+  <p>Helicopter photography supplied by Naebi Dynamic Concepts. Other photographs are from <a href="https://www.pexels.com/" target="_blank" rel="noopener">Pexels</a>, used under the <a href="https://www.pexels.com/license/" target="_blank" rel="noopener">Pexels licence</a>:</p>
+  <ul>${Object.values(STOCK).map(x => `<li><a href="${pexelsPage(x.id)}" target="_blank" rel="noopener">${x.title}</a>${x.by ? ` by ${x.by}` : ''}</li>`).join('')}</ul>
   <h2 id="accessibility">Accessibility</h2>
   <p>We aim to meet the Web Content Accessibility Guidelines (WCAG) 2.2 at level AA. The site works with a keyboard, supports screen readers and respects your device's reduced-motion setting. If anything is hard to use, please tell us through the <a href="contact.html">contact page</a>.</p>
 </div></div></section>`
 });
-console.log(`built ${OUT}`);
+/* ===================== 404 ===================== */
+page({
+  file: '404.html', active: '', noindex: true, title: 'Page not found · Naebi Dynamic Concepts',
+  desc: 'The page you were looking for could not be found.',
+  body: `${pageHero({ word: '404', crumb: 'Page not found', title: 'This page has flown off the radar', sub: 'The link may be old or mistyped. These will get you back on course.', img: 'heli-clouds' })}
+<section class="section"><div class="container"><div class="cards">
+  <a class="card" style="text-decoration:none" href="index.html"><span class="k">Start again</span><h3>Home</h3><p>Back to the Naebi homepage.</p></a>
+  <a class="card" style="text-decoration:none" href="operators.html"><span class="k">Operators</span><h3>Operator guide</h3><p>Charges, how to pay and billing queries.</p></a>
+  <a class="card" style="text-decoration:none" href="verify.html"><span class="k">Check first</span><h3>Verify an official</h3><p>Check a staff ID or payment account.</p></a>
+  <a class="card" style="text-decoration:none" href="contact.html"><span class="k">Talk to us</span><h3>Contact</h3><p>Port Harcourt and Lagos offices.</p></a>
+</div></div></section>`
+});
+
+const today = new Date().toISOString().slice(0, 10);
+writeFileSync(OUT + 'sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${PAGES.map(f => `  <url><loc>${urlFor(f)}</loc><lastmod>${today}</lastmod></url>`).join('\n')}
+</urlset>
+`);
+writeFileSync(OUT + 'robots.txt', `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap.xml\n`);
+console.log(`built ${OUT} (${PAGES.length} indexable pages + 404)`);

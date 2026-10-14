@@ -2,6 +2,10 @@
   command = "npm run build"
   publish = "dist"
 
+[functions]
+  # /api/verify (netlify/functions/verify.mjs) bundles data/register.json at deploy time
+  node_bundler = "esbuild"
+
 [[headers]]
   for = "/assets/*"
   [headers.values]
@@ -14,3 +18,4 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"

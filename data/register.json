@@ -1,0 +1,10 @@
+{
+  "_readme": "Official register checked by /api/verify. Replace the sample records with Naebi's real staff and collection accounts before launch, and keep it up to date when staff join, leave or are suspended. status is one of: active, suspended. Only the fields listed here are ever shown to the public.",
+  "staff": {
+    "NDC-PH-0142": { "status": "active", "name": "A. Okoro (sample record)", "role": "Field Monitoring Officer", "base": "Port Harcourt (DNPO)", "sample": true },
+    "NDC-LG-0087": { "status": "suspended", "role": "Field Monitoring Officer", "base": "Lagos (DNMM)", "sample": true }
+  },
+  "accounts": {
+    "0123456789": { "status": "active", "channel": "Government collection account (sample)", "sample": true }
+  }
+}
